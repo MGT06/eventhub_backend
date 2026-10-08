@@ -34,6 +34,8 @@ func NewAuthHandler(as *service.AuthService) *AuthHandler {
 // @Router			/auth/register	[post]
 // @Param			newAccount	body	dto.Register	true	"Register"
 // @Success			200		{object}	dto.Response
+// @Failure			400		{object}	dto.ErrorResponse
+// @Failure			409		{object}	dto.ErrorResponse
 // @Failure			500		{object}	dto.ErrorResponse
 func (a *AuthHandler) Register(ctx *gin.Context) {
 	var newAccount dto.Register
@@ -48,6 +50,20 @@ func (a *AuthHandler) Register(ctx *gin.Context) {
 
 	if err := a.as.Register(ctx.Request.Context(), newAccount); err != nil {
 		log.Println(err)
+		if errors.Is(err, errorTemplate.ErrInvalidInputs) {
+			ctx.JSON(http.StatusBadRequest, dto.ErrorResponse{
+				Success: false,
+				Message: errorTemplate.ErrInvalidInputs.Error(),
+			})
+			return
+		}
+		if errors.Is(err, errorTemplate.ErrEmailExist) {
+			ctx.JSON(http.StatusConflict, dto.ErrorResponse{
+				Success: false,
+				Message: errorTemplate.ErrEmailExist.Error(),
+			})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Success: false,
 			Message: "A system error has occurred",

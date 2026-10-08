@@ -2,9 +2,12 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	errorTemplate "github.com/MGT06/EventHub_Backend.git/internal/error"
 	"github.com/MGT06/EventHub_Backend.git/internal/model"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -24,6 +27,10 @@ func (a *AuthRepo) Register(ctx context.Context, body model.Account) error {
 
 	cmt, err := a.db.Exec(ctx, query, args...)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "accounts_email_key" {
+			return errorTemplate.ErrEmailExist
+		}
 		return err
 	}
 
