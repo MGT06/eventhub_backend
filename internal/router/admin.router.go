@@ -18,4 +18,5 @@ func AdminRouter(router *gin.Engine, db *pgxpool.Pool, rc *redis.Client) {
 	ah := handler.NewAdminHandler(as)
 
 	adminRoute.GET("",middleware.CheckToken(rc), middleware.AdminAccess, ah.GetDataDashboard)
+	adminRoute.GET("users", middleware.CheckToken(rc), middleware.AdminAccess, ah.GetUsers)
 }

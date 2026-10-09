@@ -24,9 +24,28 @@ func (a *AdminService) GetDataDashboard(ctx context.Context) (dto.DashboardAdmin
 	}
 
 	data := dto.DashboardAdmin{
-		TotalUsers: res.TotalUsers,
-		TotalEvents: res.TotalEvents,
+		TotalUsers:       res.TotalUsers,
+		TotalEvents:      res.TotalEvents,
 		TotalCommunities: res.TotalCommunities,
+	}
+
+	return data, nil
+}
+
+func (a *AdminService) GetUsers(ctx context.Context, search string) ([]dto.AllUser, error) {
+	res, err := a.ar.GetUsers(ctx, search)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]dto.AllUser, 0, len(res))
+	for _, v := range res {
+		data = append(data, dto.AllUser{
+			Name:   v.Name,
+			Role:   v.Role,
+			Status: v.Status,
+			Joined: v.Created_at,
+		})
 	}
 
 	return data, nil
