@@ -72,3 +72,24 @@ func (a *AdminService) GetEvents(ctx context.Context) ([]dto.Event, error) {
 
 	return data, nil
 }
+
+func (a *AdminService) GetCommunities(ctx context.Context) ([]dto.Community, error) {
+	res, err := a.ar.GetCommunities(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]dto.Community, 0, len(res))
+	for _, v := range res {
+		data = append(data, dto.Community{
+			Id: v.Id_community,
+			Community_name: v.Community_name,
+			Image_url: v.Image_community_url,
+			IsActive: v.Is_active,
+			TotalMembers: v.TotalMembers,
+			UpcomingEvent: v.UpcomingEvent,
+		})
+	}
+
+	return data, nil
+}

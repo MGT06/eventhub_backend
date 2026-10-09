@@ -7,6 +7,7 @@ type Community struct {
 	Community_name      string    `db:"community_name"`
 	Description         string    `db:"description"`
 	Image_community_url string    `db:"image_community_url"`
+	Is_active			bool 	  `db:"is_active"`
 	Created_at          time.Time `db:"created_at"`
 	Updated_at          time.Time `db:"updated_at"`
 }

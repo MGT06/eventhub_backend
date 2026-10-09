@@ -84,3 +84,33 @@ func (a *AdminRepo) GetEvents(ctx context.Context) ([]model.EventDetail, error) 
 
 	return events, nil
 }
+
+func (a *AdminRepo) GetCommunities(ctx context.Context) ([]model.CommunityDetail, error) {
+	query := `SELECT 
+    c.id, 
+    c.community_name, 
+    c.image_community_url, 
+    c.is_active,
+    COUNT(DISTINCT cm.account_id) AS total_members,
+    COUNT(DISTINCT e.id) FILTER (WHERE e.start_at > NOW()) AS upcoming_events_count
+FROM communities c 
+LEFT JOIN community_members cm ON cm.community_id = c.id
+LEFT JOIN events e ON e.community_id = c.id
+GROUP BY c.id, c.community_name, c.description, c.image_community_url;`
+
+	res, err := a.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var communities []model.CommunityDetail
+	for res.Next() {
+		var community model.CommunityDetail
+		if err := res.Scan(&community.Id_community, &community.Community_name, &community.Image_community_url, &community.Is_active, &community.TotalMembers, &community.UpcomingEvent); err != nil {
+			return nil, err
+		}
+		communities = append(communities, community)
+	}
+
+	return communities, nil
+}

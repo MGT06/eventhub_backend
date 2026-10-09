@@ -83,3 +83,21 @@ func (a *AdminHandler) GetEvents(ctx *gin.Context) {
 		Message: "Success Get Data All Event",
 	})
 }
+
+func (a *AdminHandler) GetCommunities(ctx *gin.Context) {
+	res, err := a.as.GetCommunities(ctx)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Success: false,
+			Message: "A system error has occurred",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.Response{
+		Success: true,
+		Data:    res,
+		Message: "Success Get Data All Community",
+	})
+}
