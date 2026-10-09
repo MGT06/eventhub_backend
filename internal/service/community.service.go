@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/MGT06/EventHub_Backend.git/internal/dto"
 	"github.com/MGT06/EventHub_Backend.git/internal/repo"
@@ -25,12 +26,13 @@ func (c *CommunityService) GetCommunity(ctx context.Context, communityId int) ([
 
 	data := make([]dto.Community, 0, len(res))
 	for _, v := range res {
+		category := strings.Split(v.Category_name, ", ")
 		data = append(data, dto.Community{
 			Id:             v.Id_community,
 			Community_name: v.Community_name,
 			Description:    v.Description,
 			Image_url:      v.Image_community_url,
-			Category:       v.Category_name,
+			Category:       category,
 		})
 	}
 
@@ -46,18 +48,20 @@ func (c *CommunityService) GetCommunityBySearchFilter(ctx context.Context, searc
 
 	data := make([]dto.Community, 0, len(res))
 	for _, v := range res {
+		category := strings.Split(v.Category_name, ", ")
 		data = append(data, dto.Community{
 			Id:             v.Id_community,
 			Community_name: v.Community_name,
 			Description:    v.Description,
 			Image_url:      v.Image_community_url,
-			Category:       v.Category_name,
+			TotalMembers:   v.TotalMembers,
+			UpcomingEvent:  v.UpcomingEvent,
+			Category:      category,
 		})
 	}
 
 	return data, nil
 }
-
 
 func (e *CommunityService) ToggleJoinCommunity(ctx context.Context, idUser int, idCommunity int) (bool, error) {
 	isJoin, err := e.cr.IsJoin(ctx, idUser, idCommunity)
@@ -103,12 +107,13 @@ func (c *CommunityService) GetPopularCommunity(ctx context.Context) ([]dto.Commu
 
 	data := make([]dto.Community, 0, len(res))
 	for _, v := range res {
+		category := strings.Split(v.Category_name, ", ")
 		data = append(data, dto.Community{
 			Id:             v.Id_community,
 			Community_name: v.Community_name,
 			Description:    v.Description,
 			Image_url:      v.Image_community_url,
-			Category:       v.Category_name,
+			Category:       category,
 		})
 	}
 

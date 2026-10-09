@@ -14,9 +14,7 @@ type Community struct {
 type CommunityDetail struct {
 	Community
 	category
-}
-
-type CommunityMembers struct {
-	Community
 	Account
+	TotalMembers int	`json:"total_members"`
+	UpcomingEvent int 	`json:"upcoming_events"`
 }

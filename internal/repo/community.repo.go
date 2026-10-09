@@ -19,12 +19,21 @@ func NewCommunityRepo(db *pgxpool.Pool) *CommunityRepo {
 }
 
 func (c *CommunityRepo) GetCommunity(ctx context.Context, communityId int) ([]model.CommunityDetail, error) {
-	query := `SELECT c.id, c.community_name, c.description, c.image_community_url, STRING_AGG(cg.category_name, ', ') AS "category" 
+	query := `SELECT 
+    c.id, 
+    c.community_name, 
+    c.description, 
+    c.image_community_url, 
+    COUNT(DISTINCT cm.account_id) AS total_members,
+    COUNT(DISTINCT e.id) FILTER (WHERE e.start_at > NOW()) AS upcoming_events_count,
+    STRING_AGG(DISTINCT cg.category_name, ', ') AS category
 FROM communities c 
-JOIN community_categories cc ON c.id = cc.community_id
-JOIN categories cg ON cg.id = cc.category_id
+LEFT JOIN community_categories cc ON c.id = cc.community_id
+LEFT JOIN categories cg ON cg.id = cc.category_id
+LEFT JOIN community_members cm ON cm.community_id = c.id
+LEFT JOIN events e ON e.community_id = c.id
 WHERE c.id = $1
-GROUP BY  c.id, c.community_name, c.description, c.image_community_url`
+GROUP BY c.id, c.community_name, c.description, c.image_community_url;`
 
 	args := []any{communityId}
 	res, err := c.db.Query(ctx, query, args...)
@@ -50,13 +59,23 @@ GROUP BY  c.id, c.community_name, c.description, c.image_community_url`
 }
 
 func (c *CommunityRepo) GetCommunityBySearchFilter(ctx context.Context, search string, filter string) ([]model.CommunityDetail, error) {
-	query := `SELECT c.id, c.community_name, c.description, c.image_community_url, STRING_AGG(cg.category_name, ', ') AS "category" 
+	query := `SELECT 
+    c.id, 
+    c.community_name, 
+    c.description, 
+    c.image_community_url, 
+    COUNT(DISTINCT cm.account_id) AS total_members,
+    COUNT(DISTINCT e.id) FILTER (WHERE e.start_at > NOW()) AS upcoming_events_count,
+    STRING_AGG(DISTINCT cg.category_name, ', ') AS category
 FROM communities c 
-JOIN community_categories cc ON c.id = cc.community_id
-JOIN categories cg ON cg.id = cc.category_id
+LEFT JOIN community_categories cc ON c.id = cc.community_id
+LEFT JOIN categories cg ON cg.id = cc.category_id
+LEFT JOIN community_members cm ON cm.community_id = c.id
+LEFT JOIN events e ON e.community_id = c.id
 WHERE c.community_name ILIKE $1
-GROUP BY  c.id, c.community_name, c.description, c.image_community_url
-HAVING STRING_AGG(cg.category_name, ', ') ILIKE $2;`
+GROUP BY c.id, c.community_name, c.description, c.image_community_url
+HAVING STRING_AGG(cg.category_name, ', ') ILIKE $2`
+
 	args := []any{"%" + search + "%", "%" + filter + "%"}
 
 	res, err := c.db.Query(ctx, query, args...)
@@ -68,14 +87,14 @@ HAVING STRING_AGG(cg.category_name, ', ') ILIKE $2;`
 
 	for res.Next() {
 		var community model.CommunityDetail
-		if err := res.Scan(&community.Id_community, &community.Community_name, &community.Description, &community.Image_community_url, &community.Category_name); err != nil {
+		if err := res.Scan(&community.Id_community, &community.Community_name, &community.Description, &community.Image_community_url, &community.TotalMembers, &community.UpcomingEvent, &community.Category_name); err != nil {
 			return nil, err
 		}
 		communities = append(communities, community)
 	}
 
 	if res.Err() != nil {
-		return nil, res.Err()
+		return nil, res.Err()	
 	}
 
 	return communities, nil
@@ -118,7 +137,7 @@ func (e *CommunityRepo) IsJoin(ctx context.Context, idUser int, idCommunity int)
 	args := []any{idUser, idCommunity}
 
 	res := e.db.QueryRow(ctx, query, args...)
-	
+
 	var isJoin bool
 	if err := res.Scan(&isJoin); err != nil {
 		return false, err
@@ -127,7 +146,7 @@ func (e *CommunityRepo) IsJoin(ctx context.Context, idUser int, idCommunity int)
 	return isJoin, nil
 }
 
-func (c *CommunityRepo) GetCommunityMembers(ctx context.Context, communityId int) ([]model.CommunityMembers, error) {
+func (c *CommunityRepo) GetCommunityMembers(ctx context.Context, communityId int) ([]model.CommunityDetail, error) {
 	query := "SELECT a.name FROM community_members cm JOIN accounts a ON a.id = cm.account_id WHERE cm.community_id = $1"
 	args := []any{communityId}
 
@@ -135,10 +154,10 @@ func (c *CommunityRepo) GetCommunityMembers(ctx context.Context, communityId int
 	if err != nil {
 		return nil, err
 	}
-	
-	var communityMembers []model.CommunityMembers
+
+	var communityMembers []model.CommunityDetail
 	for res.Next() {
-		var member model.CommunityMembers
+		var member model.CommunityDetail
 		if err := res.Scan(&member.Name); err != nil {
 			return nil, err
 		}
@@ -153,7 +172,7 @@ func (c *CommunityRepo) GetCommunityMembers(ctx context.Context, communityId int
 	return communityMembers, nil
 }
 
-func (c *CommunityRepo) GetPopularCommunity(ctx context.Context) ( []model.CommunityDetail, error) {
+func (c *CommunityRepo) GetPopularCommunity(ctx context.Context) ([]model.CommunityDetail, error) {
 	query := `SELECT c.id, c.community_name, c.description, c.image_community_url, STRING_AGG(cg.category_name, ', ') AS "category"
 	FROM communities c
 	JOIN community_categories cc ON cc.community_id = c.id
@@ -168,7 +187,7 @@ func (c *CommunityRepo) GetPopularCommunity(ctx context.Context) ( []model.Commu
 		return nil, err
 	}
 
-		var communities []model.CommunityDetail
+	var communities []model.CommunityDetail
 
 	for res.Next() {
 		var community model.CommunityDetail
