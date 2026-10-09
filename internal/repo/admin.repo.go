@@ -58,3 +58,29 @@ func (a *AdminRepo) GetUsers(ctx context.Context, search string) ([]model.Accoun
 
 	return users, nil
 }
+
+func (a *AdminRepo) GetEvents(ctx context.Context) ([]model.EventDetail, error) {
+	query := `SELECT e.id, e.title, e.image_event_url, e.start_at, le.city, e.capacity,
+       COUNT(DISTINCT je.account_id) AS attendees
+	FROM events e
+	JOIN accounts a ON e.organizer_id = a.id
+	LEFT JOIN join_event je ON je.event_id = e.id
+	JOIN location_event le ON e.location_event_id = le.id
+	GROUP BY e.id, a.id, le.city;`
+
+	res, err := a.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var events []model.EventDetail
+	for res.Next() {
+		var event model.EventDetail
+		if err := res.Scan(&event.Id_event, &event.Title, &event.Image_event_url, &event.Start_at, &event.City, &event.Capacity, &event.Attendees); err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+
+	return events, nil
+}

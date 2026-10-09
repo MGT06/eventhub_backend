@@ -50,3 +50,25 @@ func (a *AdminService) GetUsers(ctx context.Context, search string) ([]dto.AllUs
 
 	return data, nil
 }
+
+func (a *AdminService) GetEvents(ctx context.Context) ([]dto.Event, error) {
+	res, err := a.ar.GetEvents(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]dto.Event, 0, len(res))
+	for _, v := range res {
+		data = append(data, dto.Event{
+			Id: v.Id_event,
+			Title: v.Title,
+			Image_url: v.Image_event_url,
+			Start_at: v.Start_at,
+			Location: v.City,
+			Capacity: v.Capacity,
+			Attendees: v.Attendees,
+		})
+	}
+
+	return data, nil
+}

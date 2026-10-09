@@ -65,3 +65,21 @@ func (a *AdminHandler) GetUsers(ctx *gin.Context) {
 		Message: "Success Get Data Users",
 	})
 }
+
+func (a *AdminHandler) GetEvents(ctx *gin.Context) {
+	res, err := a.as.GetEvents(ctx)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Success: false,
+			Message: "A system error has occurred",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.Response{
+		Success: true,
+		Data:    res,
+		Message: "Success Get Data All Event",
+	})
+}
