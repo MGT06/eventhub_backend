@@ -59,6 +59,33 @@ func (c *CommunityHandler) GetCommunity(ctx *gin.Context) {
 
 }
 
+func (c *CommunityHandler) GetUpComingEventCommunity(ctx *gin.Context) {
+	communityId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Success: false,
+			Message: "A system error has occurred",
+		})
+		return
+	}
+	res, err := c.cs.GetUpComingEventCommunity(ctx.Request.Context(), communityId)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Success: false,
+			Message: "A system error has occurred",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.Response{
+		Success: true,
+		Data:    res,
+		Message: "Success Get UpComing Event Communtiy",
+	})
+}
+
 // Get Community by Search & Filter
 //
 // @Summary			Get Community by Search & Filter
@@ -119,7 +146,7 @@ func (e *CommunityHandler) ToggleJoinCommunity(ctx *gin.Context) {
 		})
 		return
 	}
-	
+
 	isJoin, er := e.cs.ToggleJoinCommunity(ctx.Request.Context(), idUser.(int), idCommunity)
 	if er != nil {
 		log.Println(er)

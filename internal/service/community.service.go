@@ -18,21 +18,44 @@ func NewCommunityService(cr *repo.CommunityRepo) *CommunityService {
 	}
 }
 
-func (c *CommunityService) GetCommunity(ctx context.Context, communityId int) ([]dto.Community, error) {
+func (c *CommunityService) GetCommunity(ctx context.Context, communityId int) (dto.Community, error) {
 	res, err := c.cr.GetCommunity(ctx, communityId)
+	if err != nil {
+		return dto.Community{}, err
+	}
+
+	var data dto.Community
+	category := strings.Split(res.Category_name, ", ")
+	data = dto.Community{
+		Id:             res.Id_community,
+		Community_name: res.Community_name,
+		Description:    res.Description,
+		Image_url:      res.Image_community_url,
+		Category:       category,
+	}
+
+	return data, nil
+}
+
+func (c *CommunityService) GetUpComingEventCommunity(ctx context.Context, communityId int) ([]dto.Event, error) {
+	res, err := c.cr.GetUpComingEventCommunity(ctx, communityId)
 	if err != nil {
 		return nil, err
 	}
 
-	data := make([]dto.Community, 0, len(res))
+	data := make([]dto.Event, 0, len(res))
 	for _, v := range res {
 		category := strings.Split(v.Category_name, ", ")
-		data = append(data, dto.Community{
-			Id:             v.Id_community,
-			Community_name: v.Community_name,
-			Description:    v.Description,
-			Image_url:      v.Image_community_url,
-			Category:       category,
+		data = append(data, dto.Event{
+			Id:          v.Id_event,
+			Title:       v.Title,
+			Description: v.Description,
+			Image_url:   v.Image_event_url,
+			Start_at:    v.Start_at,
+			Location:    v.City,
+			Capacity:    v.Capacity,
+			Attendees:   v.Attendees,
+			Categories:  category,
 		})
 	}
 
@@ -56,7 +79,7 @@ func (c *CommunityService) GetCommunityBySearchFilter(ctx context.Context, searc
 			Image_url:      v.Image_community_url,
 			TotalMembers:   v.TotalMembers,
 			UpcomingEvent:  v.UpcomingEvent,
-			Category:      category,
+			Category:       category,
 		})
 	}
 

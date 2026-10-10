@@ -24,4 +24,5 @@ type EventDetail struct {
 	Account
 	category
 	locationEvent
+	Attendees int	`json:"attendees"`
 }

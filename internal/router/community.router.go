@@ -22,4 +22,5 @@ func CommunityRouter(ctx *gin.Engine, db *pgxpool.Pool, rc *redis.Client) {
 	communityRoute.POST("join/:id", middleware.CheckToken(rc), ch.ToggleJoinCommunity)
 	communityRoute.GET("members/:id", ch.GetCommunityMembers)
 	communityRoute.GET("popular", ch.GetPopularCommunity)
+	communityRoute.GET("event/:id", ch.GetUpComingEventCommunity)
 }
