@@ -14,9 +14,16 @@ type Event struct {
 	End_at            time.Time  `db:"end_at"`
 	Format            string     `db:"format"`
 	Capacity          int        `db:"capacity"`
-	Speakers          string     `db:"speakers"`
 	Created_at        time.Time  `db:"created_at"`
 	Updated_at        *time.Time `db:"updated_at"`
+}
+
+type Speakers struct {
+	Id                int    `db:"id"`
+	SpeakersName      string `db:"name"`
+	SpeakerPosition   string `db:"title"`
+	SpeakerAvatar_url string `db:"avatar_url"`
+	Created_at        string `db:"created_at"`
 }
 
 type EventDetail struct {
@@ -24,5 +31,6 @@ type EventDetail struct {
 	Account
 	category
 	locationEvent
-	Attendees int	`json:"attendees"`
+	Speakers
+	Attendees int `json:"attendees"`
 }

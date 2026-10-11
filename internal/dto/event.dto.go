@@ -6,19 +6,19 @@ import (
 )
 
 type Event struct {
-	Id            int       `json:"id"`
-	OrganizerName string    `json:"organizer"`
-	Title         string    `json:"title"`
-	Description   string    `json:"description"`
-	Image_url     string    `json:"image_url"`
-	Start_at      time.Time `json:"start_at"`
-	End_at        time.Time `json:"end_at"`
-	Format        string    `json:"format"`
-	Location      string    `json:"location"`
-	Attendees 	  int 		`json:"attendees"`
-	Capacity      int    `json:"capacity"`
-	Speakers      string    `json:"speakers"`
-	Categories    []string  `json:"categories"`
+	Id          int       `json:"id"`
+	Organizer   Organizer `json:"organizer"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Image_url   string    `json:"image_url"`
+	Start_at    time.Time `json:"start_at"`
+	End_at      time.Time `json:"end_at"`
+	Format      string    `json:"format"`
+	Location    string    `json:"location"`
+	Attendees   int       `json:"attendees"`
+	Capacity    int       `json:"capacity"`
+	Speakers    Speaker   `json:"speakers"`
+	Categories  []string  `json:"categories"`
 }
 
 type AddEvent struct {
@@ -54,4 +54,10 @@ type Speaker struct {
 	Name   string `json:"name"`
 	Title  string `json:"title"`
 	Avatar string `json:"avatar_url"`
+}
+
+type Organizer struct {
+	Name       string  `json:"name"`
+	Position   *string `json:"position"`
+	Avatar_url *string `json:"avatar_url"`
 }

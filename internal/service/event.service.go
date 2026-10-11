@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -35,18 +34,24 @@ func (e *EventService) GetEvents(ctx context.Context, eventId int) ([]dto.Event,
 	data := make([]dto.Event, 0, len(res))
 	for _, v := range res {
 		category := strings.Split(v.Category_name, ", ")
+		organizer := dto.Organizer{
+			Name:       v.Name,
+			Position:   v.Position,
+			Avatar_url: v.Avatar_url,
+		}
 
 		data = append(data, dto.Event{
-			Id:            v.Id_event,
-			OrganizerName: v.Name,
-			Title:         v.Title,
-			Description:   v.Description,
-			Image_url:     v.Image_event_url,
-			Format:        v.Format,
-			Location:      v.City,
-			Capacity:      v.Capacity,
-			Speakers:      v.Speakers,
-			Categories:    category,
+			Id:          v.Id_event,
+			Organizer:   organizer,
+			Title:       v.Title,
+			Description: v.Description,
+			Image_url:   v.Image_event_url,
+			Start_at:    v.Start_at,
+			End_at:      v.End_at,
+			Location:    v.City,
+			Capacity:    v.Capacity,
+			Attendees:   v.Attendees,
+			Categories:  category,
 		})
 	}
 
@@ -65,16 +70,16 @@ func (e *EventService) GetEventBySearchFilter(ctx context.Context, search string
 		category := strings.Split(v.Category_name, ", ")
 
 		data = append(data, dto.Event{
-			Id:            v.Id_event,
-			OrganizerName: v.Name,
-			Title:         v.Title,
-			Description:   v.Description,
-			Image_url:     v.Image_event_url,
-			Format:        v.Format,
-			Location:      v.City,
-			Capacity:      v.Capacity,
-			Speakers:      v.Speakers,
-			Categories:    category,
+			Id:          v.Id_event,
+			Title:       v.Title,
+			Description: v.Description,
+			Image_url:   v.Image_event_url,
+			Start_at:    v.Start_at,
+			End_at:      v.End_at,
+			Location:    v.City,
+			Capacity:    v.Capacity,
+			Attendees:   v.Attendees,
+			Categories:  category,
 		})
 	}
 
@@ -136,16 +141,16 @@ func (e *EventService) GetUpComingEvents(ctx context.Context) ([]dto.Event, erro
 		category := strings.Split(v.Category_name, ", ")
 
 		data = append(data, dto.Event{
-			Id:            v.Id_event,
-			OrganizerName: v.Name,
-			Title:         v.Title,
-			Description:   v.Description,
-			Image_url:     v.Image_event_url,
-			Format:        v.Format,
-			Location:      v.City,
-			Capacity:      v.Capacity,
-			Speakers:      v.Speakers,
-			Categories:    category,
+			Id:          v.Id_event,
+			Title:       v.Title,
+			Description: v.Description,
+			Image_url:   v.Image_event_url,
+			Start_at:    v.Start_at,
+			End_at:      v.End_at,
+			Location:    v.City,
+			Capacity:    v.Capacity,
+			Attendees:   v.Attendees,
+			Categories:  category,
 		})
 	}
 
@@ -163,16 +168,16 @@ func (e *EventService) GetMyEvent(ctx context.Context, idUser int) ([]dto.Event,
 		category := strings.Split(v.Category_name, ", ")
 
 		data = append(data, dto.Event{
-			Id:            v.Id_event,
-			OrganizerName: v.Name,
-			Title:         v.Title,
-			Description:   v.Description,
-			Image_url:     v.Image_event_url,
-			Format:        v.Format,
-			Location:      v.City,
-			Capacity:      v.Capacity,
-			Speakers:      v.Speakers,
-			Categories:    category,
+			Id:          v.Id_event,
+			Title:       v.Title,
+			Description: v.Description,
+			Image_url:   v.Image_event_url,
+			Start_at:    v.Start_at,
+			End_at:      v.End_at,
+			Location:    v.City,
+			Capacity:    v.Capacity,
+			Attendees:   v.Attendees,
+			Categories:  category,
 		})
 	}
 
@@ -180,18 +185,18 @@ func (e *EventService) GetMyEvent(ctx context.Context, idUser int) ([]dto.Event,
 }
 
 func (e *EventService) AddEvent(ctx context.Context, body dto.AddEvent, userId int, imgPath string) error {
-	speakers := "[]"
-	if body.Speakers != "" {
-		var list []dto.Speaker
-		if err := json.Unmarshal([]byte(body.Speakers), &list); err != nil {
-			return err
-		}
-		res, err := json.Marshal(list)
-		if err != nil {
-			return err
-		}
-		speakers = string(res)
-	}
+	// speakers := "[]"
+	// if body.Speakers != "" {
+	// 	var list []dto.Speaker
+	// 	if err := json.Unmarshal([]byte(body.Speakers), &list); err != nil {
+	// 		return err
+	// 	}
+	// 	res, err := json.Marshal(list)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	speakers = string(res)
+	// }
 
 	tx, err := e.db.Begin(ctx)
 	if err != nil {
@@ -214,8 +219,7 @@ func (e *EventService) AddEvent(ctx context.Context, body dto.AddEvent, userId i
 		End_at:            body.End_at,
 		Format:            body.Format,
 		Location_event_id: body.LocationId,
-		Capacity:          body.Capacity,
-		Speakers:          string(speakers),
+		Capacity:          body.Capacity,		
 	})
 	if err != nil {
 		return err
@@ -232,18 +236,18 @@ func (e *EventService) AddEvent(ctx context.Context, body dto.AddEvent, userId i
 }
 
 func (e *EventService) EditEvent(ctx context.Context, eventId int, body dto.EditEvent, userId int, imgPath string) error {
-	speakers := "[]"
-	if body.Speakers != nil {
-		var list []dto.Speaker
-		if err := json.Unmarshal([]byte(*body.Speakers), &list); err != nil {
-			return err
-		}
-		res, err := json.Marshal(list)
-		if err != nil {
-			return err
-		}
-		speakers = string(res)
-	}
+	// speakers := "[]"
+	// if body.Speakers != nil {
+	// 	var list []dto.Speaker
+	// 	if err := json.Unmarshal([]byte(*body.Speakers), &list); err != nil {
+	// 		return err
+	// 	}
+	// 	res, err := json.Marshal(list)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	speakers = string(res)
+	// }
 
 	tx, err := e.db.Begin(ctx)
 	if err != nil {
@@ -275,7 +279,6 @@ func (e *EventService) EditEvent(ctx context.Context, eventId int, body dto.Edit
 		End_at:            *body.End_at,
 		Format:            *body.Format,
 		Capacity:          *body.Capacity,
-		Speakers:          speakers,
 	}); err != nil {
 		return err
 	}

@@ -25,24 +25,25 @@ func NewEventRepo() *EventRepo {
 func (e *EventRepo) GetEvents(ctx context.Context, db DBTX, eventId int) ([]model.EventDetail, error) {
 	query := `SELECT e.id,
 	   a.name,
+       a.position,
+       a.avatar_url,
        e.title,
        e.description,
        e.image_event_url,
        e.start_at,
        e.end_at,
-       e.format,
        le.city,
        e.capacity,
-       e.speakers,
-       STRING_AGG(c.category_name, ', ') AS "category"
+       COUNT(DISTINCT je.account_id) AS attendees,
+       string_agg(DISTINCT c.category_name, ', ') AS "category"
 FROM events e
+LEFT JOIN join_event je ON je.event_id = e.id
 JOIN event_categories  ON event_categories.event_id = e.id
 JOIN categories c ON event_categories.category_id = c.id
 JOIN accounts a ON e.organizer_id = a.id
 JOIN location_event le ON e.location_event_id = le.id
 WHERE e.id = $1
-GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.end_at, e.format,
-         le.city, e.capacity, e.speakers;`
+GROUP BY e.id, a.id, le.city;`
 
 	args := []any{eventId}
 
@@ -55,7 +56,7 @@ GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.
 
 	for res.Next() {
 		var event model.EventDetail
-		if err := res.Scan(&event.Id_event, &event.Name, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.Format, &event.City, &event.Capacity, &event.Speakers, &event.Category_name); err != nil {
+		if err := res.Scan(&event.Id_event, &event.Name, &event.Position, &event.Avatar_url, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.City, &event.Capacity, &event.Attendees, &event.Category_name); err != nil {
 			return nil, err
 		}
 		events = append(events, event)
@@ -70,25 +71,23 @@ GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.
 
 func (e *EventRepo) GetEventBySearchFilter(ctx context.Context, db DBTX, search string, category string, location string) ([]model.EventDetail, error) {
 	query := `SELECT e.id,
-	   a.name,
        e.title,
        e.description,
        e.image_event_url,
        e.start_at,
        e.end_at,
-       e.format,
        le.city,
        e.capacity,
-       e.speakers,
-       STRING_AGG(c.category_name, ', ') AS "category"
+       COUNT(DISTINCT je.account_id) AS attendees,
+       string_agg(DISTINCT c.category_name, ', ') AS "category"
 FROM events e
+LEFT JOIN join_event je ON je.event_id = e.id
 JOIN event_categories  ON event_categories.event_id = e.id
 JOIN categories c ON event_categories.category_id = c.id
 JOIN accounts a ON e.organizer_id = a.id
 JOIN location_event le ON e.location_event_id = le.id
 WHERE e.title ILIKE $1 AND le.city ILIKE $3
-GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.end_at, e.format,
-         le.city, e.capacity, e.speakers
+GROUP BY e.id, le.city
 HAVING STRING_AGG(c.category_name, ', ') ILIKE $2;`
 
 	args := []any{"%" + search + "%", "%" + category + "%", "%" + location + "%"}
@@ -102,7 +101,7 @@ HAVING STRING_AGG(c.category_name, ', ') ILIKE $2;`
 
 	for res.Next() {
 		var event model.EventDetail
-		if err := res.Scan(&event.Id_event, &event.Name, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.Format, &event.City, &event.Capacity, &event.Speakers, &event.Category_name); err != nil {
+		if err := res.Scan(&event.Id_event, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.City, &event.Capacity, &event.Attendees, &event.Category_name); err != nil {
 			return nil, err
 		}
 		events = append(events, event)
@@ -148,9 +147,9 @@ func (e *EventRepo) LeaveEvent(ctx context.Context, db DBTX, idUser int, idEvent
 }
 
 type isCanJoin struct {
-	Cap int
+	Cap       int
 	Attendess int
-	IsJoin bool
+	IsJoin    bool
 }
 
 func (e *EventRepo) IsCanJoin(ctx context.Context, db DBTX, idUser int, idEvent int) (isCanJoin, error) {
@@ -318,7 +317,7 @@ GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.
 func (e *EventRepo) AddEvent(ctx context.Context, db DBTX, body model.Event) (int, error) {
 	query := "INSERT INTO events (organizer_id, community_id, location_event_id, title, description, image_event_url, start_at, end_at, format, capacity, speakers) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id"
 
-	args := []any{body.Organizer_id, body.Community_id, body.Location_event_id, body.Title, body.Description, body.Image_event_url, body.Start_at, body.End_at, body.Format, body.Capacity, body.Speakers}
+	args := []any{body.Organizer_id, body.Community_id, body.Location_event_id, body.Title, body.Description, body.Image_event_url, body.Start_at, body.End_at, body.Format, body.Capacity}
 
 	var eventId int
 	if err := db.QueryRow(ctx, query, args...).Scan(&eventId); err != nil {
@@ -384,7 +383,7 @@ func (e *EventRepo) UpdateEvent(ctx context.Context, db DBTX, eventId, userId in
 		capacity          = COALESCE($11, capacity),
 		speakers          = $12
 	WHERE id = $1 AND organizer_id = $2`
-	args := []any{eventId, userId, body.Community_id, body.Location_event_id, body.Title, body.Description, body.Image_event_url, body.Start_at, body.End_at, body.Format, body.Capacity, body.Speakers}
+	args := []any{eventId, userId, body.Community_id, body.Location_event_id, body.Title, body.Description, body.Image_event_url, body.Start_at, body.End_at, body.Format, body.Capacity}
 
 	fmt.Println(body.Location_event_id)
 	cmt, err := db.Exec(ctx, query, args...)
