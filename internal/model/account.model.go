@@ -17,3 +17,9 @@ type Account struct {
 	Created_at    time.Time  `db:"created_at"`
 	Updated_at    *time.Time `db:"updated_at"`
 }
+
+type AccountDetail struct {
+	Account
+	EventJoin       []int `db:"event_join"`
+	CommunityMember []int `db:"community_member"`
+}

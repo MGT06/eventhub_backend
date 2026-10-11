@@ -41,8 +41,6 @@ func (u *UserService) GetProfileUser(ctx context.Context, userId int) (dto.UserP
 		return dto.UserProfile{}, err
 	}
 
-	log.Println(res.Role)
-
 	data := dto.UserProfile{
 		Name:          res.Name,
 		Email:         res.Email,
@@ -107,10 +105,12 @@ func (u *UserService) GetUserHeaderInformation(ctx context.Context, userId int) 
 	}
 
 	data := dto.UserHeaderInfo{
-		Name:       res.Name,
-		Email:      res.Email,
-		Avatar_url: res.Avatar_url,
-		Role:       res.Role,
+		Name:            res.Name,
+		Email:           res.Email,
+		Avatar_url:      res.Avatar_url,
+		Role:            res.Role,
+		EventJoin:       res.EventJoin,
+		CommunityMember: res.CommunityMember,
 	}
 
 	return data, nil

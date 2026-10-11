@@ -26,8 +26,10 @@ type ChangePassword struct {
 }
 
 type UserHeaderInfo struct {
-	Name       string  `json:"name"`
-	Email      string  `json:"email"`
-	Avatar_url *string `json:"avatar_url"`
-	Role       string  `json:"role"`
+	Name            string  `json:"name"`
+	Email           string  `json:"email"`
+	Avatar_url      *string `json:"avatar_url"`
+	Role            string  `json:"role"`
+	EventJoin       []int   `json:"event_join"`
+	CommunityMember []int   `json:"community_member"`
 }
