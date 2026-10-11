@@ -25,7 +25,6 @@ import (
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println(err)
-		return
 	}
 
 	pdb := config.NewPsqlDb(os.Getenv("DBUSER"), os.Getenv("DBPASS"), os.Getenv("DBHOST"), os.Getenv("DBPORT"), os.Getenv("DBNAME"))
