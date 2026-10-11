@@ -19,11 +19,11 @@ type Event struct {
 }
 
 type Speakers struct {
-	Id                int    `db:"id"`
-	SpeakersName      string `db:"name"`
-	SpeakerPosition   string `db:"title"`
-	SpeakerAvatar_url string `db:"avatar_url"`
-	Created_at        string `db:"created_at"`
+	Id         int    `db:"id"`
+	Name       string `db:"name"`
+	Position   string `db:"title"`
+	Avatar_url string `db:"avatar_url"`
+	Created_at string `db:"created_at"`
 }
 
 type EventDetail struct {
@@ -31,6 +31,5 @@ type EventDetail struct {
 	Account
 	category
 	locationEvent
-	Speakers
-	Attendees int `json:"attendees"`
+	Attendees int `db:"attendees"`
 }

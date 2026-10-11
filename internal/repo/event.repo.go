@@ -22,7 +22,7 @@ func NewEventRepo() *EventRepo {
 	return &EventRepo{}
 }
 
-func (e *EventRepo) GetEvents(ctx context.Context, db DBTX, eventId int) ([]model.EventDetail, error) {
+func (e *EventRepo) GetEvents(ctx context.Context, db DBTX, eventId int) (model.EventDetail, error) {
 	query := `SELECT e.id,
 	   a.name,
        a.position,
@@ -47,26 +47,69 @@ GROUP BY e.id, a.id, le.city;`
 
 	args := []any{eventId}
 
+	res := db.QueryRow(ctx, query, args...)
+
+	var event model.EventDetail
+	if err := res.Scan(&event.Id_event, &event.Name, &event.Position, &event.Avatar_url, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.City, &event.Capacity, &event.Attendees, &event.Category_name); err != nil {
+		return model.EventDetail{}, err
+	}
+
+	return event, nil
+}
+
+func (e *EventRepo) GetSpeakers(ctx context.Context, db DBTX, eventId int) ([]model.Speakers, error) {
+	query := `SELECT s.name, s.title,  s.avatar_url
+		FROM event_speakers es
+		JOIN speakers s ON s.id = es.speaker_id
+		JOIN events e ON e.id = es.event_id 
+		WHERE e.id = $1`
+
+	args := []any{eventId}
+
 	res, err := db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 
-	var events []model.EventDetail
-
+	var speakers []model.Speakers
 	for res.Next() {
-		var event model.EventDetail
-		if err := res.Scan(&event.Id_event, &event.Name, &event.Position, &event.Avatar_url, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.City, &event.Capacity, &event.Attendees, &event.Category_name); err != nil {
+		var speaker model.Speakers
+		if err := res.Scan(&speaker.Name, &speaker.Position, &speaker.Avatar_url); err != nil {
 			return nil, err
 		}
-		events = append(events, event)
+		speakers = append(speakers, speaker)
 	}
 
-	if res.Err() != nil {
-		return nil, res.Err()
+	return speakers, nil
+}
+
+func (e *EventRepo) GetDiscussions(ctx context.Context, db DBTX, eventId int) ([]model.DiscussionsEventDetail, error) {
+	query := `SELECT
+			d.id, d.event_id, d.account_id, d.parent_id,
+			d.message, d.created_at, d.updated_at,
+			a.name, a.avatar_url
+		FROM event_discussions d
+		LEFT JOIN accounts a ON a.id = d.account_id
+		WHERE d.event_id = $1
+		ORDER BY d.created_at ASC`
+
+	args := []any{eventId}
+
+	res, err := db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
 	}
 
-	return events, nil
+	var discussions []model.DiscussionsEventDetail
+	for res.Next() {
+		var discuss model.DiscussionsEventDetail
+		if err := res.Scan(&discuss.DiscussId, &discuss.EventId, &discuss.AccountId, &discuss.ParentId, &discuss.Message, &discuss.CreatedAt, &discuss.UpdatedAt, &discuss.Name, &discuss.Avatar_url); err != nil {
+			return nil, err
+		}
+		discussions = append(discussions, discuss)
+	}
+
+	return discussions, nil
 }
 
 func (e *EventRepo) GetEventBySearchFilter(ctx context.Context, db DBTX, search string, category string, location string) ([]model.EventDetail, error) {
@@ -254,7 +297,7 @@ GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.
 
 	for res.Next() {
 		var event model.EventDetail
-		if err := res.Scan(&event.Id_event, &event.Name, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.Format, &event.City, &event.Capacity, &event.Speakers, &event.Category_name); err != nil {
+		if err := res.Scan(&event.Id_event, &event.Name, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.Format, &event.City, &event.Capacity, &event.Category_name); err != nil {
 			return nil, err
 		}
 		events = append(events, event)
@@ -301,7 +344,7 @@ GROUP BY e.id, a.name, e.title, e.description, e.image_event_url, e.start_at, e.
 
 	for res.Next() {
 		var event model.EventDetail
-		if err := res.Scan(&event.Id_event, &event.Name, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.Format, &event.City, &event.Capacity, &event.Speakers, &event.Category_name); err != nil {
+		if err := res.Scan(&event.Id_event, &event.Name, &event.Title, &event.Description, &event.Image_event_url, &event.Start_at, &event.End_at, &event.Format, &event.City, &event.Capacity, &event.Category_name); err != nil {
 			return nil, err
 		}
 		events = append(events, event)

@@ -25,34 +25,81 @@ func NewEventService(er *repo.EventRepo, db *pgxpool.Pool) *EventService {
 	}
 }
 
-func (e *EventService) GetEvents(ctx context.Context, eventId int) ([]dto.Event, error) {
+func (e *EventService) GetEvents(ctx context.Context, eventId int) (dto.Event, error) {
 	res, err := e.er.GetEvents(ctx, e.db, eventId)
 	if err != nil {
-		return nil, err
+		return dto.Event{}, err
 	}
 
-	data := make([]dto.Event, 0, len(res))
-	for _, v := range res {
-		category := strings.Split(v.Category_name, ", ")
-		organizer := dto.Organizer{
+	speaker, er := e.er.GetSpeakers(ctx, e.db, eventId)
+	if er != nil {
+		return dto.Event{}, er
+	}
+
+	discuss, err := e.er.GetDiscussions(ctx, e.db, eventId)
+
+	byID := make(map[int]dto.DiscussionEvent, len(discuss))
+
+	for _, v := range discuss {
+		author := dto.Author{
+			Id:        v.AccountId,
+			Name:      v.Name,
+			AvatarURL: v.Avatar_url,
+		}
+
+		byID[v.DiscussId] = dto.DiscussionEvent{
+			Id:        v.DiscussId,
+			EventId:   v.EventId,
+			ParentId:  v.ParentId,
+			Message:   v.Message,
+			Author:    author,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+			Replies:   []dto.DiscussionEvent{},
+		}
+	}
+
+	var roots []dto.DiscussionEvent
+	for _, val := range byID {
+		if val.ParentId != nil {
+			if parent, ok := byID[*val.ParentId]; ok {
+				parent.Replies = append(parent.Replies, val)
+				continue
+			}
+		}
+		roots = append(roots, val)
+	}
+
+	category := strings.Split(res.Category_name, ", ")
+	organizer := dto.Organizer{
+		Name:       res.Name,
+		Position:   res.Position,
+		Avatar_url: res.Avatar_url,
+	}
+
+	var speakers []dto.Speaker
+	for _, v := range speaker {
+		speakers = append(speakers, dto.Speaker{
 			Name:       v.Name,
 			Position:   v.Position,
 			Avatar_url: v.Avatar_url,
-		}
-
-		data = append(data, dto.Event{
-			Id:          v.Id_event,
-			Organizer:   organizer,
-			Title:       v.Title,
-			Description: v.Description,
-			Image_url:   v.Image_event_url,
-			Start_at:    v.Start_at,
-			End_at:      v.End_at,
-			Location:    v.City,
-			Capacity:    v.Capacity,
-			Attendees:   v.Attendees,
-			Categories:  category,
 		})
+	}
+
+	data := dto.Event{
+		Id:          res.Id_event,
+		Organizer:   organizer,
+		Title:       res.Title,
+		Description: res.Description,
+		Image_url:   res.Image_event_url,
+		Start_at:    res.Start_at,
+		End_at:      res.End_at,
+		Location:    res.City,
+		Capacity:    res.Capacity,
+		Attendees:   res.Attendees,
+		Speakers:    speakers,
+		Discuss:     roots,
+		Categories:  category,
 	}
 
 	return data, nil
@@ -219,7 +266,7 @@ func (e *EventService) AddEvent(ctx context.Context, body dto.AddEvent, userId i
 		End_at:            body.End_at,
 		Format:            body.Format,
 		Location_event_id: body.LocationId,
-		Capacity:          body.Capacity,		
+		Capacity:          body.Capacity,
 	})
 	if err != nil {
 		return err
