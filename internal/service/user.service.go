@@ -42,13 +42,9 @@ func (u *UserService) GetProfileUser(ctx context.Context, userId int) (dto.UserP
 	}
 
 	data := dto.UserProfile{
-		Name:          res.Name,
-		Email:         res.Email,
 		Bio:           res.Bio,
 		User_location: res.User_location,
 		Position:      res.Position,
-		Avatar_url:    res.Avatar_url,
-		Role:          res.Role,
 	}
 
 	if err := utils.SetToRedis(ctx, u.rc, key, data); err != nil {

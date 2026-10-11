@@ -19,13 +19,13 @@ func NewUserRepo(db *pgxpool.Pool) *UserRepo {
 }
 
 func (u *UserRepo) GetProfileUser(ctx context.Context, userId int) (model.Account, error) {
-	query := "SELECT name, email, bio, user_location, position, avatar_url, role FROM accounts where id = $1"
+	query := "SELECT bio, user_location, position FROM accounts where id = $1"
 	args := []any{userId}
 
 	res := u.db.QueryRow(ctx, query, args...)
 
 	var profile model.Account
-	if err := res.Scan(&profile.Name, &profile.Email, &profile.Bio, &profile.User_location, &profile.Position, &profile.Avatar_url, &profile.Role); err != nil {
+	if err := res.Scan(&profile.Bio, &profile.User_location, &profile.Position); err != nil {
 		return model.Account{}, nil
 	}
 
