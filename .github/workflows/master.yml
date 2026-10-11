@@ -10,12 +10,15 @@ jobs:
       - name: get repository
         uses: actions/checkout@v7
 
+      - name: set lowercase image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       - name: run docker build
-        run: docker build -t ghcr.io/${{github.repository}}:latest .
+        run: docker build -t $IMAGE:latest .
 
       - name: login to ghcr
         run: |
           echo "${{secrets.GITHUB_TOKEN}}" | docker login ghcr.io -u ${{github.actor}} --password-stdin
 
       - name: push to ghcr
-        run: docker push ghcr.io/${{github.repository}}:latest
+        run: docker push $IMAGE:latest
