@@ -1,6 +1,8 @@
 package router
 
 import (
+	"path"
+
 	"github.com/MGT06/EventHub_Backend.git/internal/handler"
 	"github.com/MGT06/EventHub_Backend.git/internal/middleware"
 	"github.com/MGT06/EventHub_Backend.git/internal/repo"
@@ -12,6 +14,8 @@ import (
 
 func UserRouter(router *gin.Engine, db *pgxpool.Pool, rc *redis.Client) {
 	userRoute := router.Group("/user")
+
+	router.Static("img", path.Join("public", "img"))
 
 	ur := repo.NewUserRepo(db)
 	us := service.NewUserService(ur, rc)

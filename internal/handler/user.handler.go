@@ -115,9 +115,9 @@ func (u *UserHandler) EditProfileUser(ctx *gin.Context) {
 		}
 
 		filename := fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), body.Name, path.Ext(body.Avatar.Filename))
-		path := path.Join("public", "img", "persons", filename)
-	
-		if err := ctx.SaveUploadedFile(body.Avatar, path); err != nil {
+		savePath := path.Join("public", "img", "persons", filename)
+		
+		if err := ctx.SaveUploadedFile(body.Avatar, savePath); err != nil {
 			log.Println(err)
 			ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 				Success: false,
@@ -125,7 +125,8 @@ func (u *UserHandler) EditProfileUser(ctx *gin.Context) {
 			})
 			return
 		}
-
+		
+		path := path.Join("img", "persons", filename)
 		filepath = &path
 	}
 

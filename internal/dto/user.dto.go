@@ -17,7 +17,7 @@ type EditUserProfile struct {
 	Bio           *string               `form:"bio"`
 	User_location *string               `form:"user_location" binding:"omitempty,max=50"`
 	Position      *string               `form:"position" binding:"omitempty,max=50"`
-	Avatar        *multipart.FileHeader `form:"avatar_url"`
+	Avatar        *multipart.FileHeader `form:"avatar"`
 }
 
 type ChangePassword struct {
