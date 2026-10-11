@@ -23,4 +23,5 @@ func CommunityRouter(ctx *gin.Engine, db *pgxpool.Pool, rc *redis.Client) {
 	communityRoute.GET("members/:id", ch.GetCommunityMembers)
 	communityRoute.GET("popular", ch.GetPopularCommunity)
 	communityRoute.GET("event/:id", ch.GetUpComingEventCommunity)
+	communityRoute.GET("discussions/:id", ch.GetCommunityDiscussions)
 }

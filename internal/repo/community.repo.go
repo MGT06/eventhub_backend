@@ -38,7 +38,6 @@ GROUP BY c.id, c.community_name, c.description, c.image_community_url;`
 	args := []any{communityId}
 	res := c.db.QueryRow(ctx, query, args...)
 
-
 	var community model.CommunityDetail
 	if err := res.Scan(&community.Id_community, &community.Community_name, &community.Description, &community.Image_community_url, &community.TotalMembers, &community.UpcomingEvent, &community.Category_name); err != nil {
 		return model.CommunityDetail{}, err
@@ -224,4 +223,33 @@ func (c *CommunityRepo) GetPopularCommunity(ctx context.Context) ([]model.Commun
 	}
 
 	return communities, nil
+}
+
+func (c *CommunityRepo) GetCommunityDiscussions(ctx context.Context, communityId int) ([]model.DiscussionsCommunityDetail, error) {
+	query := `SELECT
+			d.id, d.community_id, d.account_id, d.parent_id,
+			d.message, d.created_at, d.updated_at,
+			a.name, a.avatar_url
+		FROM community_discussions d
+		LEFT JOIN accounts a ON a.id = d.account_id
+		WHERE d.community_id = $1
+		ORDER BY d.created_at ASC`
+
+	args := []any{communityId}
+
+	res, err := c.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var discussions []model.DiscussionsCommunityDetail
+	for res.Next() {
+		var discuss model.DiscussionsCommunityDetail
+		if err := res.Scan(&discuss.DiscussId, &discuss.CommunityId, &discuss.AccountId, &discuss.ParentId, &discuss.Message, &discuss.CreatedAt, &discuss.UpdatedAt, &discuss.Name, &discuss.Avatar_url); err != nil {
+			return nil, err
+		}
+		discussions = append(discussions, discuss)
+	}
+
+	return discussions, nil
 }

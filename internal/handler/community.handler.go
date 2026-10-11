@@ -236,3 +236,31 @@ func (c *CommunityHandler) GetPopularCommunity(ctx *gin.Context) {
 	})
 
 }
+
+func (c *CommunityHandler) GetCommunityDiscussions(ctx *gin.Context) {
+	communityId, e := strconv.Atoi(ctx.Param("id"))
+	if e != nil {
+		log.Println(e)
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Success: false,
+			Message: "A system error has occurred",
+		})
+		return
+	}
+
+	res, err := c.cs.GetCommunityDiscussions(ctx.Request.Context(), communityId)
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
+			Success: false,
+			Message: "A system error has occurred",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.Response{
+		Success: true,
+		Data:    res,
+		Message: "Success Get Discussions Community",
+	})
+}

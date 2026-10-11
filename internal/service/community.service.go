@@ -146,3 +146,43 @@ func (c *CommunityService) GetPopularCommunity(ctx context.Context) ([]dto.Commu
 
 	return data, nil
 }
+
+func (c *CommunityService) GetCommunityDiscussions(ctx context.Context, communityId int) ([]*dto.DiscussionCommunity, error) {
+	res, err := c.cr.GetCommunityDiscussions(ctx, communityId)
+	if err != nil {
+		return nil, err
+	}
+
+	byID := make(map[int]*dto.DiscussionCommunity, len(res))
+
+	for _, v := range res {
+		author := dto.Author{
+			Id:        v.AccountId,
+			Name:      v.Name,
+			AvatarURL: v.Avatar_url,
+		}
+
+		byID[v.DiscussId] = &dto.DiscussionCommunity{
+			Id:          v.DiscussId,
+			CommunityId: v.CommunityId,
+			ParentId:    v.ParentId,
+			Message:     v.Message,
+			Author:      author,
+			CreatedAt:   v.CreatedAt,
+			UpdatedAt:   v.UpdatedAt,
+			Replies:     []*dto.DiscussionCommunity{},
+		}
+	}
+
+	var roots []*dto.DiscussionCommunity
+	for _, val := range byID {
+		if val.ParentId != nil {
+			if parent, ok := byID[*val.ParentId]; ok {
+				parent.Replies = append(parent.Replies, val)
+				continue
+			}
+		}
+		roots = append(roots, val)
+	}
+	return roots, nil
+}
