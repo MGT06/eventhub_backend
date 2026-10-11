@@ -1,0 +1,6 @@
+makefile
+db
+tmp
+*.http
+.env*
+public
