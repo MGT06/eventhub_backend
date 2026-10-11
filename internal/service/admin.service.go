@@ -41,7 +41,9 @@ func (a *AdminService) GetUsers(ctx context.Context, search string) ([]dto.AllUs
 	data := make([]dto.AllUser, 0, len(res))
 	for _, v := range res {
 		data = append(data, dto.AllUser{
+			Id:     v.UserId,
 			Name:   v.Name,
+			Email:  v.Email,
 			Role:   v.Role,
 			Status: v.Status,
 			Joined: v.Created_at,
@@ -60,12 +62,12 @@ func (a *AdminService) GetEvents(ctx context.Context) ([]dto.Event, error) {
 	data := make([]dto.Event, 0, len(res))
 	for _, v := range res {
 		data = append(data, dto.Event{
-			Id: v.Id_event,
-			Title: v.Title,
+			Id:        v.Id_event,
+			Title:     v.Title,
 			Image_url: v.Image_event_url,
-			Start_at: v.Start_at,
-			Location: v.City,
-			Capacity: v.Capacity,
+			Start_at:  v.Start_at,
+			Location:  v.City,
+			Capacity:  v.Capacity,
 			Attendees: v.Attendees,
 		})
 	}
@@ -82,12 +84,12 @@ func (a *AdminService) GetCommunities(ctx context.Context) ([]dto.Community, err
 	data := make([]dto.Community, 0, len(res))
 	for _, v := range res {
 		data = append(data, dto.Community{
-			Id: v.Id_community,
+			Id:             v.Id_community,
 			Community_name: v.Community_name,
-			Image_url: v.Image_community_url,
-			IsActive: v.Is_active,
-			TotalMembers: v.TotalMembers,
-			UpcomingEvent: v.UpcomingEvent,
+			Image_url:      v.Image_community_url,
+			IsActive:       v.Is_active,
+			TotalMembers:   v.TotalMembers,
+			UpcomingEvent:  v.UpcomingEvent,
 		})
 	}
 

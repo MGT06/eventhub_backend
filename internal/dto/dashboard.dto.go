@@ -15,7 +15,9 @@ type DashboardAdmin struct {
 }
 
 type AllUser struct {
+	Id     int       `json:"id"`
 	Name   string    `json:"name"`
+	Email  string    `json:"email"`
 	Role   string    `json:"role"`
 	Status string    `json:"status"`
 	Joined time.Time `json:"joined"`

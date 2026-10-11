@@ -39,7 +39,7 @@ func (a *AdminRepo) GetDataDashboard(ctx context.Context) (model.DashboardAdmin,
 }
 
 func (a *AdminRepo) GetUsers(ctx context.Context, search string) ([]model.Account, error) {
-	query := "SELECT name, role, status, created_at FROM accounts WHERE LOWER(name) LIKE LOWER($1)"
+	query := "SELECT id, name, email, role, status, created_at FROM accounts WHERE LOWER(name) LIKE LOWER($1)"
 	args := []any{"%" + search + "%"}
 
 	res, err := a.db.Query(ctx, query, args...)
@@ -50,7 +50,7 @@ func (a *AdminRepo) GetUsers(ctx context.Context, search string) ([]model.Accoun
 	var users []model.Account
 	for res.Next() {
 		var user model.Account
-		if err := res.Scan(&user.Name, &user.Role, &user.Status, &user.Created_at); err != nil {
+		if err := res.Scan(&user.UserId, &user.Name, &user.Email, &user.Role, &user.Status, &user.Created_at); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
