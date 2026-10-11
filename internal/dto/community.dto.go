@@ -12,5 +12,7 @@ type Community struct {
 }
 
 type CommunityMembers struct {
-	MemberName string `json:"member_name"`
+	Name string `json:"name"`
+	Avatar_url *string `json:"avatar_url"`
+	Position *string `json:"position"`
 }

@@ -31,6 +31,8 @@ func (c *CommunityService) GetCommunity(ctx context.Context, communityId int) (d
 		Community_name: res.Community_name,
 		Description:    res.Description,
 		Image_url:      res.Image_community_url,
+		TotalMembers:   res.TotalMembers,
+		UpcomingEvent:  res.UpcomingEvent,
 		Category:       category,
 	}
 
@@ -115,7 +117,9 @@ func (c *CommunityService) GetCommunityMembers(ctx context.Context, communityId 
 	data := make([]dto.CommunityMembers, 0, len(res))
 	for _, v := range res {
 		data = append(data, dto.CommunityMembers{
-			MemberName: v.Name,
+			Name:       v.Name,
+			Avatar_url: v.Avatar_url,
+			Position:   v.Position,
 		})
 	}
 

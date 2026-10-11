@@ -169,7 +169,7 @@ func (e *CommunityRepo) IsJoin(ctx context.Context, idUser int, idCommunity int)
 }
 
 func (c *CommunityRepo) GetCommunityMembers(ctx context.Context, communityId int) ([]model.CommunityDetail, error) {
-	query := "SELECT a.name FROM community_members cm JOIN accounts a ON a.id = cm.account_id WHERE cm.community_id = $1"
+	query := "SELECT a.name, a.avatar_url, a.position FROM community_members cm JOIN accounts a ON a.id = cm.account_id WHERE cm.community_id = $1"
 	args := []any{communityId}
 
 	res, err := c.db.Query(ctx, query, args...)
@@ -180,7 +180,7 @@ func (c *CommunityRepo) GetCommunityMembers(ctx context.Context, communityId int
 	var communityMembers []model.CommunityDetail
 	for res.Next() {
 		var member model.CommunityDetail
-		if err := res.Scan(&member.Name); err != nil {
+		if err := res.Scan(&member.Name, &member.Avatar_url, &member.Position); err != nil {
 			return nil, err
 		}
 
