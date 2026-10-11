@@ -49,5 +49,5 @@ func main() {
 
 	router.MainRouter(r, pool, rdb)
 
-	r.Run("localhost:9000")
+	r.Run(":9000")
 }
