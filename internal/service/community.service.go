@@ -24,9 +24,8 @@ func (c *CommunityService) GetCommunity(ctx context.Context, communityId int) (d
 		return dto.Community{}, err
 	}
 
-	var data dto.Community
 	category := strings.Split(res.Category_name, ", ")
-	data = dto.Community{
+	data := dto.Community{
 		Id:             res.Id_community,
 		Community_name: res.Community_name,
 		Description:    res.Description,

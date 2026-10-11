@@ -16,6 +16,6 @@ type CommunityDetail struct {
 	Community
 	category
 	Account
-	TotalMembers int	`json:"total_members"`
-	UpcomingEvent int 	`json:"upcoming_events"`
+	TotalMembers int	`db:"total_members"`
+	UpcomingEvent int 	`db:"upcoming_events"`
 }
