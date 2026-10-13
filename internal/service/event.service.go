@@ -139,15 +139,16 @@ func (e *EventService) ToggleJoinEvent(ctx context.Context, idUser int, idEvent 
 		return res.IsJoin, err
 	}
 
-	if (res.Cap - res.Attendess) == 0 {
-		return res.IsJoin, fmt.Errorf("Event is fuul")
-	}
-
+	
 	if res.IsJoin {
 		if err := e.er.LeaveEvent(ctx, e.db, idUser, idEvent); err != nil {
 			return res.IsJoin, err
 		}
 		return res.IsJoin, nil
+	}
+	
+	if (res.Cap - res.Attendess) == 0 {
+		return res.IsJoin, fmt.Errorf("Event is fuul")
 	}
 
 	if err := e.er.JoinEvent(ctx, e.db, idUser, idEvent); err != nil {
