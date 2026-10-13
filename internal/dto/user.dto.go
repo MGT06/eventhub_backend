@@ -28,4 +28,5 @@ type UserHeaderInfo struct {
 	Role            string  `json:"role"`
 	EventJoin       []int   `json:"event_join"`
 	CommunityMember []int   `json:"community_member"`
+	EventSave       []int   `json:"event_save"`
 }

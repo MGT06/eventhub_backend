@@ -22,4 +22,5 @@ type AccountDetail struct {
 	Account
 	EventJoin       []int `db:"event_join"`
 	CommunityMember []int `db:"community_member"`
+	EventSave       []int `db:"event_save"`
 }

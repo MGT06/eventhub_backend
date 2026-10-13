@@ -97,7 +97,7 @@ func (u *UserService) ChangePassword(ctx context.Context, userId int, body dto.C
 func (u *UserService) GetUserHeaderInformation(ctx context.Context, userId int) (dto.UserHeaderInfo, error) {
 	res, err := u.ur.GetUserHeaderInformation(ctx, userId)
 	if err != nil {
-		return dto.UserHeaderInfo{}, nil
+		return dto.UserHeaderInfo{}, err
 	}
 
 	data := dto.UserHeaderInfo{
@@ -107,6 +107,7 @@ func (u *UserService) GetUserHeaderInformation(ctx context.Context, userId int) 
 		Role:            res.Role,
 		EventJoin:       res.EventJoin,
 		CommunityMember: res.CommunityMember,
+		EventSave:       res.EventSave,
 	}
 
 	return data, nil

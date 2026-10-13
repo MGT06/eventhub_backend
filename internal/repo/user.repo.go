@@ -88,18 +88,19 @@ func (u *UserRepo) ChangePassword(ctx context.Context, userId int, newPassword s
 }
 
 func (u *UserRepo) GetUserHeaderInformation(ctx context.Context, userId int) (model.AccountDetail, error) {
-	query := `SELECT name, email, avatar_url, role, COALESCE(json_agg(DISTINCT je.event_id) FILTER (WHERE je.event_id IS NOT NULL), '[]'::json) AS "event_join", COALESCE(json_agg(DISTINCT cm.community_id) FILTER (WHERE cm.community_id IS NOT NULL), '[]'::json) AS "community_member"
+	query := `SELECT name, email, avatar_url, role, COALESCE(ARRAY_AGG(DISTINCT je.event_id) FILTER (WHERE je.event_id IS NOT NULL), '{}'::int[]) AS "event_join", COALESCE(ARRAY_AGG(DISTINCT cm.community_id) FILTER (WHERE cm.community_id IS NOT NULL), '{}'::int[]) AS "community_member", COALESCE(ARRAY_AGG(DISTINCT se.event_id) FILTER (WHERE se.event_id IS NOT NULL), '{}'::int[]) AS "event_save"
 		FROM accounts a
 		LEFT JOIN join_event je ON je.account_id = a.id
 		LEFT JOIN community_members cm ON cm.account_id = a.id
+        LEFT JOIN saved_events se ON se.account_id = a.id
 		WHERE a.id = $1
-		GROUP BY a.id`
+		GROUP BY a.id;`
 	args := []any{userId}
 
 	res := u.db.QueryRow(ctx, query, args...)
 
 	var userInformation model.AccountDetail
-	if err := res.Scan(&userInformation.Name, &userInformation.Email, &userInformation.Avatar_url, &userInformation.Role, &userInformation.EventJoin, &userInformation.CommunityMember); err != nil {
+	if err := res.Scan(&userInformation.Name, &userInformation.Email, &userInformation.Avatar_url, &userInformation.Role, &userInformation.EventJoin, &userInformation.CommunityMember, &userInformation.EventSave); err != nil {
 		return model.AccountDetail{}, err
 	}
 

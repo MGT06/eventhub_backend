@@ -230,6 +230,7 @@ func (u *UserHandler) GetUserHeaderInformation(ctx *gin.Context) {
 
 	res, err := u.us.GetUserHeaderInformation(ctx.Request.Context(), id.(int))
 	if err != nil {
+		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, dto.Response{
 			Success: false,
 			Message: "A system error has occurred",
