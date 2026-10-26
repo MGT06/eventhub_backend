@@ -4,7 +4,7 @@ import "time"
 
 type Notification struct {
 	Id       int        `json:"id"`
-	UserName string        `json:"userName"`
+	UserName string     `json:"userName"`
 	Title    string     `json:"title"`
 	Message  string     `json:"message"`
 	Type     string     `json:"type"`

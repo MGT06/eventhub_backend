@@ -18,7 +18,7 @@ func NewNotificationRepo(db *pgxpool.Pool) *NotificationRepo {
 }
 
 func (n *NotificationRepo) GetMyNotification(ctx context.Context, userId int) ([]model.NotificationDetail, error) {
-	query := "SELECT n.id, a.name, n.title, n.message, n.type, n.read_at FROM notifications n JOIN accounts a ON n.account_id = a.id WHERE a.id = $1"
+	query := "SELECT n.id, a.name, n.title, n.message, n.type, n.read_at FROM notifications n JOIN accounts a ON n.account_id = a.id WHERE a.id = $1 ORDER BY read_at DESC"
 	args := []any{userId}
 
 	res, err := n.db.Query(ctx, query, args...)
