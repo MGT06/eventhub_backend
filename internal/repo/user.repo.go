@@ -29,32 +29,28 @@ func (u *UserRepo) GetProfileUser(ctx context.Context, userId int) (model.Accoun
 		return model.Account{}, nil
 	}
 
-	fmt.Println(profile.Name)
-
 	return profile, nil
 }
 
-func (u *UserRepo) EditProfileUser(ctx context.Context, body model.Account, userId int) error {
+func (u *UserRepo) EditProfileUser(ctx context.Context, body model.Account, userId int) (model.Account, error) {
 	query := `UPDATE accounts 
     SET 
-		name = COALESCE($1, name),
-        bio = $2, 
-        user_location = $3,
-        position = $4, 
-        avatar_url = $5 
-    WHERE id = $6`
+		name = COALESCE(NULLIF($1, ''), name),
+        bio = COALESCE($2, bio), 
+        user_location = COALESCE($3, user_location),
+        position = COALESCE($4, position), 
+        avatar_url = COALESCE($5, avatar_url) 
+    WHERE id = $6 RETURNING name, bio, user_location, position, avatar_url`
 	args := []any{body.Name, body.Bio, body.User_location, body.Position, body.Avatar_url, userId}
 
-	cmt, err := u.db.Exec(ctx, query, args...)
-	if err != nil {
-		return err
+	res := u.db.QueryRow(ctx, query, args...)
+
+	var profile model.Account
+	if err := res.Scan(&profile.Name, &profile.Bio, &profile.User_location, &profile.Position, &profile.Avatar_url); err != nil {
+		return model.Account{}, err
 	}
 
-	if cmt.RowsAffected() == 0 {
-		return fmt.Errorf("no row affected")
-	}
-
-	return nil
+	return profile, nil
 }
 
 func (u *UserRepo) GetCurrPassword(ctx context.Context, userId int) (string, error) {

@@ -101,7 +101,7 @@ func (u *UserHandler) EditProfileUser(ctx *gin.Context) {
 	}
 
 	var filepath *string
-	
+
 	if body.Avatar != nil {
 		ext := path.Ext(body.Avatar.Filename)
 		switch ext {
@@ -116,7 +116,7 @@ func (u *UserHandler) EditProfileUser(ctx *gin.Context) {
 
 		filename := fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), body.Name, path.Ext(body.Avatar.Filename))
 		savePath := path.Join("public", "img", "persons", filename)
-		
+
 		if err := ctx.SaveUploadedFile(body.Avatar, savePath); err != nil {
 			log.Println(err)
 			ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
@@ -125,12 +125,14 @@ func (u *UserHandler) EditProfileUser(ctx *gin.Context) {
 			})
 			return
 		}
-		
+
 		path := path.Join("img", "persons", filename)
 		filepath = &path
 	}
 
-	if err := u.us.EditProfileUser(ctx, body, id.(int), filepath); err != nil {
+	res, err := u.us.EditProfileUser(ctx, body, id.(int), filepath)
+
+	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Success: false,
@@ -141,6 +143,7 @@ func (u *UserHandler) EditProfileUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, dto.Response{
 		Success: true,
+		Data: res,
 		Message: "Success Edit Profile",
 	})
 
@@ -240,7 +243,7 @@ func (u *UserHandler) GetUserHeaderInformation(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, dto.Response{
 		Success: true,
-		Data: res,
+		Data:    res,
 		Message: "Success Get Information Header User",
 	})
 }

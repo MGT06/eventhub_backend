@@ -9,11 +9,19 @@ type UserProfile struct {
 }
 
 type EditUserProfile struct {
-	Name          string                `form:"name" binding:"required"`
+	Name          string                `form:"name"`
 	Bio           *string               `form:"bio"`
 	User_location *string               `form:"user_location" binding:"omitempty,max=50"`
 	Position      *string               `form:"position" binding:"omitempty,max=50"`
 	Avatar        *multipart.FileHeader `form:"avatar"`
+}
+
+type ResponseEditUserProfile struct {
+	Name          string  `json:"name"`
+	Bio           *string `json:"bio"`
+	User_location *string `json:"user_location"`
+	Position      *string `json:"position"`
+	Avatar        *string `json:"avatar_url"`
 }
 
 type ChangePassword struct {

@@ -54,15 +54,26 @@ func (u *UserService) GetProfileUser(ctx context.Context, userId int) (dto.UserP
 	return data, err
 }
 
-func (u *UserService) EditProfileUser(ctx context.Context, body dto.EditUserProfile, userId int, AvaPath *string) error {
-	if err := u.ur.EditProfileUser(ctx, model.Account{
+func (u *UserService) EditProfileUser(ctx context.Context, body dto.EditUserProfile, userId int, AvaPath *string) (dto.ResponseEditUserProfile, error) {
+	request := model.Account{
 		Name:          body.Name,
 		Bio:           body.Bio,
 		User_location: body.User_location,
 		Position:      body.Position,
 		Avatar_url:    AvaPath,
-	}, userId); err != nil {
-		return err
+	}
+
+	res, err := u.ur.EditProfileUser(ctx, request, userId)
+	if err != nil {
+		return dto.ResponseEditUserProfile{}, err
+	}
+
+	response := dto.ResponseEditUserProfile{
+		Name:          res.Name,
+		Bio:           res.Bio,
+		User_location: res.User_location,
+		Position:      res.Position,
+		Avatar:        res.Avatar_url,
 	}
 
 	key := fmt.Sprintf("eventhub:profile:%d", userId)
@@ -70,7 +81,7 @@ func (u *UserService) EditProfileUser(ctx context.Context, body dto.EditUserProf
 	mes := utils.DelFromRedis(ctx, u.rc, key)
 	log.Println(mes)
 
-	return nil
+	return response, nil
 }
 
 func (u *UserService) ChangePassword(ctx context.Context, userId int, body dto.ChangePassword) error {
