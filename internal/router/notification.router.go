@@ -13,9 +13,14 @@ import (
 func notificationRouter(router *gin.Engine, db *pgxpool.Pool, rc *redis.Client) {
 	notificationRoute := router.Group("/notification")
 
+	hs := service.NewHub()
+	
 	nr := repo.NewNotificationRepo(db)
-	ns := service.NewNotificationService(nr)
+	ns := service.NewNotificationService(nr, hs)
 	nh := handler.NewNotificationHandler(ns)
+	
+	sh := handler.NewStreamHandler(hs, ns)
 
 	notificationRoute.GET("", middleware.CheckToken(rc), nh.GetMyNotification)
+	notificationRoute.GET("stream", middleware.CheckToken(rc), sh.Stream)
 }
