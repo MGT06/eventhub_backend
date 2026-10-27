@@ -21,24 +21,21 @@ func NewAuthRepo(db *pgxpool.Pool) *AuthRepo {
 	}
 }
 
-func (a *AuthRepo) Register(ctx context.Context, body model.Account) error {
-	query := "INSERT INTO accounts (name, email, password) VALUES ($1, $2, $3)"
+func (a *AuthRepo) Register(ctx context.Context, body model.Account) (int, error) {
+	query := "INSERT INTO accounts (name, email, password) VALUES ($1, $2, $3) RETURNING id"
 	args := []any{body.Name, body.Email, body.Password}
 
-	cmt, err := a.db.Exec(ctx, query, args...)
-	if err != nil {
+	res := a.db.QueryRow(ctx, query, args...)
+	var id int
+	if err := res.Scan(&id); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "accounts_email_key" {
-			return errorTemplate.ErrEmailExist
+			return 0, errorTemplate.ErrEmailExist
 		}
-		return err
+		return 0, err
 	}
 
-	if cmt.RowsAffected() == 0 {
-		return fmt.Errorf("no row affected")
-	}
-
-	return nil
+	return id, nil
 }
 
 func (a *AuthRepo) FindAccount(ctx context.Context, email string) (model.Account, error) {

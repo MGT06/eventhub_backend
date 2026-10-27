@@ -19,12 +19,14 @@ import (
 type AuthService struct {
 	ar *repo.AuthRepo
 	rc *redis.Client
+	ns *NotificationService
 }
 
-func NewAuthService(ar *repo.AuthRepo, rc *redis.Client) *AuthService {
+func NewAuthService(ar *repo.AuthRepo, rc *redis.Client, ns *NotificationService) *AuthService {
 	return &AuthService{
 		ar: ar,
 		rc: rc,
+		ns: ns,
 	}
 }
 
@@ -40,13 +42,21 @@ func (a *AuthService) Register(ctx context.Context, body dto.Register) error {
 
 	hash := pkg.NewHashConfig().GenHash(body.Password)
 
-	if err := a.ar.Register(ctx, model.Account{
+	id, err := a.ar.Register(ctx, model.Account{
 		Name:     body.FullName,
 		Email:    body.Email,
 		Password: hash,
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
+
+	a.ns.Notify(ctx, dto.CreateNotification{
+		UserId:  id,
+		Title:   "Registration confirmed",
+		Message: "You're registered in this app",
+		Type:    "registration",
+	})
 
 	return nil
 }
@@ -68,7 +78,6 @@ func (a *AuthService) Login(ctx context.Context, body dto.Login) (string, error)
 	claims := pkg.NewJWTClaims(acc.UserId, acc.Role)
 	return claims.GenToken()
 }
-
 
 func (a *AuthService) Logout(ctx context.Context, userId int, JTI string, Expired time.Duration) error {
 	key := fmt.Sprintf("eventhub:tokenBlacklist:%s", JTI)
@@ -101,5 +110,5 @@ func (a *AuthService) ResetPassword(ctx context.Context, body dto.ResetPassword)
 		return err
 	}
 
-	return  nil
+	return nil
 }

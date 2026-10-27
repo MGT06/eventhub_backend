@@ -10,11 +10,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func authRouter(router *gin.Engine, db *pgxpool.Pool, rc *redis.Client){
+func authRouter(router *gin.Engine, db *pgxpool.Pool, rc *redis.Client) {
 	authRoute := router.Group("/auth")
 
+	nr := repo.NewNotificationRepo(db)
+	nh := service.NewHub()
+	ns := service.NewNotificationService(nr, nh)
+
 	ar := repo.NewAuthRepo(db)
-	as := service.NewAuthService(ar, rc)
+	as := service.NewAuthService(ar, rc, ns)
 	ah := handler.NewAuthHandler(as)
 
 	authRoute.POST("register", ah.Register)
